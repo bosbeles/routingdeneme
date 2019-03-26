@@ -3,13 +3,8 @@ package com.deneme;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Main {
 
@@ -19,6 +14,8 @@ public class Main {
 
     static Color green = new Color(152, 251, 152);
     static Color red = new Color(199, 81, 80);
+    private static JFrame frame;
+    private static Image newimg;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> createAndShowGUI());
@@ -45,8 +42,7 @@ public class Main {
         mark = new ImageIcon(Main.class.getResource("/check_24.png"));
         cross = new ImageIcon(Main.class.getResource("/cross-24.png"));
 
-        JFrame frame = new JFrame();
-
+        frame = new JFrame();
 
 
         JTabbedPane tabbedPane = new JTabbedPane();
@@ -73,10 +69,18 @@ public class Main {
     private static JPanel createRouting() {
 
 
-        String[] links = {"HOST", "1003", "1005", "1006"};
+        String[] links = {"HOST", "1003", "1005", "1006", "1007", "1008", "1009", "1010", "1011"};
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
+
+        ImageIcon ıcon = new ImageIcon(Main.class.getResource("/Filter-02.png"));
+        Image image = ıcon.getImage(); // transform it
+        // scale it the smooth way
+        newimg = image.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+
+
+        ClickablePanel[][] clickables = new ClickablePanel[links.length + 1][links.length + 1];
 
         for (int i = 0; i < links.length + 1; i++) {
             for (int j = 0; j < links.length + 1; j++) {
@@ -85,12 +89,65 @@ public class Main {
                 if (i == j) {
                     panel.add(new JLabel(), gc);
                 } else if (i == 0) {
-                    panel.add(new JButton(links[j - 1]), gc);
+                    HeaderButton button = new HeaderButton(links[j - 1]);
+                    int col = j;
+                    button.addActionListener(e -> {
+                        int count = 0;
+                        for (int k = 0; k < links.length + 1; k++) {
+                            ClickablePanel p = clickables[k][col];
+                            if (p != null && p.checkBox.isSelected()) {
+                                count++;
+                            }
+                        }
+
+                        if(count == links.length - 1) {
+                            button.setSelectedAll(false);
+                        }
+                        else if(count == 0) {
+                            button.setSelectedAll(true);
+                        } else {
+                            button.setSelectedAll(!button.isSelectedAll());
+                        }
+                        for (int k = 0; k < links.length + 1; k++) {
+                            ClickablePanel p = clickables[k][col];
+                            if (p != null) {
+                                p.setSelected(button.isSelectedAll());
+                            }
+                        }
+                    });
+                    panel.add(button, gc);
                 } else {
                     if (j == 0) {
-                        panel.add(new JButton(links[i - 1]), gc);
+                        HeaderButton button = new HeaderButton(links[i - 1]);
+                        int row = i;
+
+                        button.addActionListener(e -> {
+                            int count = 0;
+                            for (int k = 0; k < links.length + 1; k++) {
+                                ClickablePanel p = clickables[row][k];
+                                if (p != null && p.checkBox.isSelected()) {
+                                    count++;
+                                }
+                            }
+                            if(count == links.length - 1) {
+                                button.setSelectedAll(false);
+                            }
+                            else if(count == 0) {
+                                button.setSelectedAll(true);
+                            } else {
+                                button.setSelectedAll(!button.isSelectedAll());
+                            }
+                            for (int k = 0; k < links.length + 1; k++) {
+                                ClickablePanel p = clickables[row][k];
+                                if (p != null) {
+                                    p.setSelected(button.isSelectedAll());
+                                }
+                            }
+                        });
+                        panel.add(button, gc);
                     } else {
-                        panel.add(clickablePanel(), gc);
+                        clickables[i][j] = clickablePanel();
+                        panel.add(clickables[i][j], gc);
                     }
                 }
 
@@ -99,8 +156,6 @@ public class Main {
         }
 
         JPanel legend = new JPanel();
-        legend.add(createLegendButton(green));
-        legend.add(new JLabel("No Filter"));
 
         legend.add(createLegendButton(red));
         legend.add(new JLabel("Filtered"));
@@ -108,8 +163,8 @@ public class Main {
 
         gc.gridy++;
         gc.gridx = 0;
-        gc.gridwidth = links.length+ 1;
-        panel.add(legend , gc);
+        gc.gridwidth = links.length + 1;
+        panel.add(legend, gc);
 
 
         return panel;
@@ -117,16 +172,18 @@ public class Main {
 
     private static JComponent createLegendButton(Color color) {
         JPanel button = new JPanel();
-        button.setPreferredSize(new Dimension(12,12));
+        button.setPreferredSize(new Dimension(20, 20));
         button.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        button.setBackground(color);
+        // button.setBackground(color);
+        button.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        button.add(new JLabel(new ImageIcon(newimg), SwingConstants.LEADING));
 
         return button;
     }
 
     private static JPanel createFilter() {
 
-        JPanel panel = new JPanel(new MigLayout("debug, fill"));
+        JPanel panel = new JPanel(new MigLayout("fill"));
 
         JTable table = new JTable(new Object[][]{
                 {"HOST", "1003", "Simulation", "12:24:23"},
@@ -153,52 +210,93 @@ public class Main {
 
         JButton filter = new JButton("Apply Filter");
 
-
         panel.add(pane, "push, grow, span");
-        panel.add(delete, "growx 0");
-        panel.add(details, "gapleft push, align right, span");
         panel.add(fromLabel);
+
         panel.add(fromCombo, "growx");
         panel.add(toLabel);
         panel.add(toCombo, "growx");
         panel.add(filterLabel);
         panel.add(filterCombo, "growx");
+
         panel.add(filter);
 
         return panel;
     }
 
 
-    static Random random = new Random();
+    static ClickablePanel clickablePanel() {
 
 
-    static JComponent clickablePanel() {
-        JButton button = new JButton(cross);
-        JCheckBox checkBox = new JCheckBox();
+        ClickablePanel panel = new ClickablePanel();
 
-        button.setSize(32, 32);
 
-        button.addActionListener(e -> {
-            checkBox.setSelected(!checkBox.isSelected());
+        return panel;
+    }
+
+    static class ClickablePanel extends JPanel {
+
+        private final JCheckBox checkBox;
+        private final JButton button;
+
+        public ClickablePanel() {
+            boolean yes = ThreadLocalRandom.current().nextBoolean();
+
+            button = new JButton(cross) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+
+                    if (yes) {
+                        g.drawImage(newimg, getSize().width - 18, 2, null);
+                    }
+
+                }
+            };
+            checkBox = new JCheckBox();
+
+            button.setSize(32, 32);
+
+
+            button.addActionListener(e -> {
+                setSelected(!checkBox.isSelected());
+            });
+
+            setSelected(ThreadLocalRandom.current().nextBoolean());
+
+
+            setLayout(new GridLayout());
+            // panel.setBorder(BorderFactory.createLineBorder(Color.RED));
+            this.add(button);
+        }
+
+        public void setSelected(boolean selected) {
+            checkBox.setSelected(selected);
 
             if (checkBox.isSelected()) {
                 button.setIcon(mark);
+                button.setBackground(green);
             } else {
                 button.setIcon(cross);
+                button.setBackground(red);
             }
+        }
+    }
 
+    static class HeaderButton extends JButton {
+        boolean selectedAll;
+        public HeaderButton(String text) {
+            super(text);
+        }
 
-        });
+        public boolean isSelectedAll() {
+            return selectedAll;
+        }
 
+        public void setSelectedAll(boolean selectedAll) {
+            this.selectedAll = selectedAll;
+        }
 
-
-        button.setBackground(random.nextBoolean() ? green : red);
-
-        JPanel panel = new JPanel(new GridLayout());
-        // panel.setBorder(BorderFactory.createLineBorder(Color.RED));
-        panel.add(button);
-
-        return panel;
     }
 
 
