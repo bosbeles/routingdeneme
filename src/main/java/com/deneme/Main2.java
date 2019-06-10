@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Main {
+public class Main2 {
 
 
     private static ImageIcon mark;
@@ -39,8 +39,8 @@ public class Main {
             }
         }
 
-        mark = new ImageIcon(Main.class.getResource("/check_24.png"));
-        cross = new ImageIcon(Main.class.getResource("/cross-24.png"));
+        mark = new ImageIcon(Main2.class.getResource("/check_24.png"));
+        cross = new ImageIcon(Main2.class.getResource("/cross-24.png"));
 
         frame = new JFrame();
 
@@ -80,7 +80,7 @@ public class Main {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
 
-        ImageIcon ıcon = new ImageIcon(Main.class.getResource("/Filter-02.png"));
+        ImageIcon ıcon = new ImageIcon(Main2.class.getResource("/Filter-02.png"));
         Image image = ıcon.getImage(); // transform it
         // scale it the smooth way
         newimg = image.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
@@ -201,7 +201,7 @@ public class Main {
                         panel.add(button, gc);
                     } else {
 
-                        clickables[i][j] = clickablePanel(r);
+                        clickables[i][j] = clickablePanel(r, i != 0 && j != 0);
                         panel.add(clickables[i][j], gc);
                     }
                 }
@@ -292,10 +292,10 @@ public class Main {
     }
 
 
-    static ClickablePanel clickablePanel(Runnable r) {
+    static ClickablePanel clickablePanel(Runnable r, boolean noCross) {
 
 
-        ClickablePanel panel = new ClickablePanel(r);
+        ClickablePanel panel = new ClickablePanel(r, noCross);
 
 
         return panel;
@@ -306,9 +306,15 @@ public class Main {
         private final JCheckBox checkBox;
         private final JButton button;
         private final Color old;
+        private final boolean noCross;
 
         public ClickablePanel(Runnable r) {
+            this(r, false);
+        }
+
+        public ClickablePanel(Runnable r, boolean noCross) {
             boolean yes = ThreadLocalRandom.current().nextBoolean();
+            this.noCross = noCross;
 
             button = new JButton(cross) {
                 @Override
@@ -325,8 +331,11 @@ public class Main {
             old = button.getBackground();
 
             checkBox = new JCheckBox();
-            button.setPreferredSize(new Dimension(48,32));
-            //button.setSize(32, 32);
+            if(noCross) {
+                button.setPreferredSize(new Dimension(48,32));
+                button.setSize(32, 32);
+            }
+
 
 
             button.addActionListener(e -> {
@@ -348,35 +357,40 @@ public class Main {
         public void setSelected(boolean selected) {
             checkBox.setSelected(selected);
 
-            if (checkBox.isSelected()) {
-                button.setIcon(mark);
-                button.setBackground(green);
-            } else {
-                button.setIcon(null);
-                button.setBackground(old);
-                //button.setIcon(cross);
-                //button.setBackground(red);
+            if(this.isEnabled()) {
+                if (checkBox.isSelected()) {
+                    button.setIcon(mark);
+                    button.setBackground(green);
+                } else {
+                    if(noCross) {
+                        button.setIcon(null);
+                        button.setBackground(old);
+                    }
+                    else {
+                        button.setIcon(cross);
+                        button.setBackground(red);
+                    }
+
+
+                }
             }
+            else {
+                if(noCross) {
+                    button.setIcon(null);
+                }
+                else {
+                    button.setIcon(cross);
+                }
+                button.setBackground(old);
+            }
+
+
         }
 
         @Override
         public void setEnabled(boolean enabled) {
             super.setEnabled(enabled);
-            if(enabled) {
-                if (checkBox.isSelected()) {
-                    button.setIcon(mark);
-                    button.setBackground(green);
-                } else {
-                    button.setIcon(null);
-                    button.setBackground(old);
-                    //button.setIcon(cross);
-                    //button.setBackground(red);
-                }
-            }
-            else {
-                button.setBackground(Color.lightGray);
-            }
-
+            setSelected(checkBox.isSelected());
             //button.setEnabled(enabled);
         }
     }

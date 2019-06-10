@@ -24,7 +24,7 @@ public class MulticastServer extends Thread {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
 
-            System.out.println("receive " + msg.recipient());
+            System.out.println("receive " + msg.recipient() + " " + msg.content());
         }
     }
 
@@ -41,7 +41,7 @@ public class MulticastServer extends Thread {
                 Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress address = addresses.nextElement();
-                    if (address instanceof Inet4Address && networkInterface.getName().equals("wlan1")) {
+                    if (address instanceof Inet4Address) {
                         localAddress = address;
                         ni = networkInterface;
                         System.out.println(localAddress + " " + ni.getName());
