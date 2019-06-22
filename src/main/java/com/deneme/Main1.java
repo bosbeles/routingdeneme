@@ -15,7 +15,7 @@ public class Main1 {
 
 
     static Color red = new Color(152, 251, 152);
-    static Color green = new Color(43, 137, 199);
+    static Color green = new Color(0, 122, 204);
 
     static int N = 6;
 
@@ -145,9 +145,9 @@ public class Main1 {
                         }
                         newText += "</html>";
                     }
-                    //HeaderButton button = new HeaderButton(j > 1 ? links[j - 2] : "RX", true);
+                    HeaderButton button = new HeaderButton(j > 1 ? links[j - 2] : "RX", true);
 
-                    HeaderButton button = new HeaderButton(j > 1 ? j + "" : "RX");
+                    //HeaderButton button = new HeaderButton(j > 1 ? j + "" : "RX");
 
                     /*if(j>1) {
                         button.setPreferredSize(new Dimension(32,64));
@@ -444,9 +444,22 @@ public class Main1 {
         }
 
         public HeaderButton(String text, boolean vertical) {
-            super(text);
+            //super(text);
             if (vertical) {
-                this.setUI(new VerticalButtonUI(90));
+                TextIcon icon = new TextIcon(this, text, TextIcon.Layout.HORIZONTAL);
+                RotatedIcon r1 = new RotatedIcon(icon, RotatedIcon.Rotate.UP);
+
+
+                this.setIcon(r1);
+                Insets bm = UIManager.getInsets("Button.margin");
+                if(bm == null) {
+                    bm = new Insets(1,1,1,1);
+                }
+                Insets margin = new Insets(bm.left, bm.top, bm.left, bm.top);
+                this.setMargin( margin );
+            }
+            else {
+                setText(text);
             }
 
 
